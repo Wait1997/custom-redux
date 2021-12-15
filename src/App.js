@@ -1,25 +1,52 @@
-import logo from './logo.svg';
-import './App.css';
+import { appContext, store, connect } from './redux'
 
-function App() {
+export const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <appContext.Provider value={store}>
+      <LargeSon />
+      <MediumSon />
+      <SmallSon />
+    </appContext.Provider>
+  )
 }
 
-export default App;
+const LargeSon = () => (
+  <section>
+    大儿子
+    <User />
+  </section>
+)
+const MediumSon = () => (
+  <section>
+    二儿子
+    <UserModifier />
+  </section>
+)
+
+const SmallSon = connect((state) => {
+  return { group: state.group }
+})((group) => (
+  <section>
+    小儿子<div>Group:{group.name}</div>
+  </section>
+))
+
+const User = connect((state) => {
+  return { user: state.user }
+})(({ user }) => {
+  return <div>User: {user.name}</div>
+})
+
+const UserModifier = connect((state) => {
+  return { user: state.user }
+})(({ dispatch, user }) => {
+  const onChange = (e) => {
+    dispatch({ type: 'updateUser', payload: { name: e.target.value } })
+  }
+
+  return (
+    <div>
+      <input type='text' value={user.name} onChange={onChange} />
+    </div>
+  )
+})
