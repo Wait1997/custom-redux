@@ -1,12 +1,34 @@
-import { appContext, store, connect } from './redux'
+import { createStore, connect } from './redux'
+import { Provider } from './redux/context'
+
+const initState = {
+  user: { name: 'frank', age: 18 },
+  group: { name: '前端组' }
+}
+
+const reducer = (state, { type, payload }) => {
+  if (type === 'updateUser') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...payload
+      }
+    }
+  } else {
+    return state
+  }
+}
+
+const store = createStore(reducer, initState)
 
 export const App = () => {
   return (
-    <appContext.Provider value={store}>
+    <Provider store={store}>
       <LargeSon />
       <MediumSon />
       <SmallSon />
-    </appContext.Provider>
+    </Provider>
   )
 }
 
@@ -25,23 +47,34 @@ const MediumSon = () => (
 
 const SmallSon = connect((state) => {
   return { group: state.group }
-})((group) => (
-  <section>
-    小儿子<div>Group:{group.name}</div>
-  </section>
-))
+})(({ group }) => {
+  return (
+    <section>
+      小儿子<div>Group: {group.name}</div>
+    </section>
+  )
+})
 
-const User = connect((state) => {
+const userSelector = (state) => {
   return { user: state.user }
-})(({ user }) => {
+}
+
+const userDispatcher = (dispatch) => {
+  return {
+    updateUser: (value) => dispatch({ type: 'updateUser', payload: value })
+  }
+}
+
+const User = connect(userSelector)(({ user }) => {
   return <div>User: {user.name}</div>
 })
 
-const UserModifier = connect((state) => {
-  return { user: state.user }
-})(({ dispatch, user }) => {
+const UserModifier = connect(
+  userSelector,
+  userDispatcher
+)(({ updateUser, user }) => {
   const onChange = (e) => {
-    dispatch({ type: 'updateUser', payload: { name: e.target.value } })
+    updateUser({ name: e.target.value })
   }
 
   return (
