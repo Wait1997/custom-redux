@@ -1,50 +1,51 @@
-import { useState, useContext, useEffect, useMemo } from 'react'
-import { appContext } from './context'
-import { changed } from './utils'
+import { useState, useContext, useEffect, useMemo } from 'react';
+import { appContext } from './context';
+import { changed } from './utils';
 
 const store = {
   state: null,
   reducer: () => {},
   setState(newState) {
     // 通过 reducer 函数更新 state
-    store.state = newState
+    store.state = newState;
     // 发布订阅
-    store.listeners.map((fn) => fn(store.state))
+    store.listeners.map(fn => fn(store.state));
   },
   listeners: [],
   subscribe(fn) {
-    store.listeners.push(fn)
+    store.listeners.push(fn);
     return () => {
-      const index = store.listeners.indexOf(fn)
-      store.listeners.splice(index, 1)
-    }
+      const index = store.listeners.indexOf(fn);
+      store.listeners.splice(index, 1);
+    };
   }
-}
+};
 
 // 赋值初始状态
 export const createStore = (reducer, initState) => {
-  store.state = initState
-  store.reducer = reducer
+  store.state = initState;
+  store.reducer = reducer;
 
-  return store
-}
+  return store;
+};
 
-export const connect = (selector, dispatchSelector) => (Component) => {
-  return (props) => {
-    const { state, setState, reducer } = useContext(appContext)
+export const connect = (selector, dispatchSelector) => Component => {
+  return props => {
+    const { state, setState, reducer } = useContext(appContext);
 
-    const dispatch = (action) => {
-      setState(reducer(state, action))
-    }
+    const dispatch = action => {
+      setState(reducer(state, action));
+    };
 
     // forceUpdate 强制更新组件
-    const [, update] = useState({})
+    const [, update] = useState({});
 
+    // update 更新时 获取最新的 state
     const data = useMemo(() => {
-      return selector ? selector(state) : { state }
-    }, [state])
+      return selector ? selector(state) : { state };
+    }, [state]);
 
-    const dispatchers = dispatchSelector ? dispatchSelector(dispatch) : { dispatch }
+    const dispatchers = dispatchSelector ? dispatchSelector(dispatch) : { dispatch };
 
     /**
      * useEffect 只是为了在初始化的时候订阅一次
@@ -53,14 +54,15 @@ export const connect = (selector, dispatchSelector) => (Component) => {
      */
     useEffect(() => {
       return store.subscribe(() => {
-        const newData = selector ? selector(store.state) : { state: store.state }
+        // store.state 最新的 state dispatch 派发时存储到 store 的最新值
+        const newData = selector ? selector(store.state) : { state: store.state };
         if (changed(data, newData)) {
-          update({})
+          update({});
         }
-      })
+      });
       // 这里最好 取消订阅 否则在 selector 变化时会出现重复订阅
-    }, [data])
+    }, [data]);
 
-    return <Component {...props} {...data} {...dispatchers} />
-  }
-}
+    return <Component {...props} {...data} {...dispatchers} />;
+  };
+};
