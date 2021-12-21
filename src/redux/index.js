@@ -5,10 +5,8 @@ import { changed } from './utils';
 const store = {
   state: null,
   reducer: () => {},
-  setState(newState) {
-    // 通过 reducer 函数更新 state
-    store.state = newState;
-    // 发布订阅
+  dispatch(action) {
+    store.state = store.reducer(store.state, action);
     store.listeners.map(fn => fn(store.state));
   },
   listeners: [],
@@ -31,11 +29,7 @@ export const createStore = (reducer, initState) => {
 
 export const connect = (selector, dispatchSelector) => Component => {
   return props => {
-    const { state, setState, reducer } = useContext(appContext);
-
-    const dispatch = action => {
-      setState(reducer(state, action));
-    };
+    const { state, dispatch } = useContext(appContext);
 
     // forceUpdate 强制更新组件
     const [, update] = useState({});

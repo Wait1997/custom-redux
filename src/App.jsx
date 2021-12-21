@@ -76,7 +76,6 @@ const UserModifier = connect(
   const onChange = e => {
     updateUser({ name: e.target.value });
   };
-
   return (
     <div>
       <input type='text' value={user.name} onChange={onChange} />
